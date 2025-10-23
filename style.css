@@ -183,20 +183,10 @@ small {
 
 }
 
-/* Status specific card styling */
-.item-card.status-resolved {
+.item-card.resolved {
     opacity: 0.7; /* ทำให้รายการที่ Resolved ดูจางลง */
     background-color: #f0f0f0;
     border-color: #d0d0d0;
-}
-
-.item-card.status-pending {
-    border-left: 5px solid #ffc107; /* ส้ม */
-    background-color: #fffde7; /* สีพื้นหลังอ่อนๆ */
-}
-
-.item-card.status-active {
-    /* ไม่มีสไตล์พิเศษมากนัก นอกจากที่กำหนดไว้แล้ว */
 }
 
 .item-card .item-name {
@@ -205,12 +195,12 @@ small {
     color: #333;
 }
 
-/* Status text styling */
 .item-card .item-status {
     font-weight: bold;
     padding: 2px 8px;
     border-radius: 4px;
     font-size: 0.9em;
+    white-space: nowrap; /* ป้องกันการขึ้นบรรทัดใหม่ */
 }
 
 .item-card .status-active {
@@ -218,73 +208,29 @@ small {
     color: white;
 }
 
-.item-card .status-pending {
-    background-color: #ffc107; /* Orange for pending */
-    color: #333;
-}
-
 .item-card .status-resolved {
     background-color: #6c757d; /* Grey for resolved */
     color: white;
 }
 
-/* Action Buttons Styling */
-.item-actions {
-    display: flex;
-    flex-wrap: wrap; /* ให้ปุ่มขึ้นบรรทัดใหม่ได้ถ้าที่จำกัด */
-    gap: 10px; /* ระยะห่างระหว่างปุ่ม */
-    margin-top: 15px;
-}
-
 .action-button {
-    flex: 1; /* ให้ปุ่มขยายเต็มพื้นที่ที่มี */
-    min-width: 120px; /* ขนาดขั้นต่ำของปุ่ม */
+    background-color: #ffc107; /* Yellow for action button */
+    color: #333;
     padding: 8px 15px;
     border: none;
     border-radius: 4px;
     cursor: pointer;
     font-size: 0.95em;
+    margin-top: 15px;
+    width: 100%;
     transition: background-color 0.3s ease;
-    color: white; /* Default white text for all action buttons */
 }
 
 .action-button:hover {
-    filter: brightness(0.9); /* ทำให้สีเข้มขึ้นเล็กน้อยเมื่อ hover */
+    background-color: #e0a800;
 }
 
 .action-button:disabled {
     background-color: #ccc;
     cursor: not-allowed;
-    color: #666;
-}
-
-/* Specific button colors */
-.action-button.pending-button {
-    background-color: #ffc107; /* Orange */
-    color: #333;
-}
-.action-button.pending-button:hover {
-    background-color: #e0a800;
-}
-
-.action-button.resolved-button {
-    background-color: #dc3545; /* Red */
-}
-.action-button.resolved-button:hover {
-    background-color: #c82333;
-}
-
-.action-button.active-button {
-    background-color: #17a2b8; /* Cyan/Info blue */
-}
-.action-button.active-button:hover {
-    background-color: #138496;
-}
-
-.resolved-message {
-    font-style: italic;
-    color: #6c757d;
-    text-align: center;
-    width: 100%;
-    margin-top: 10px;
 }
