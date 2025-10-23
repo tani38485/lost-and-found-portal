@@ -11,8 +11,20 @@ document.addEventListener('DOMContentLoaded', () => {
     // ตั้งค่า Event Listener สำหรับ Tab Buttons
     document.querySelectorAll('.tab-button').forEach(button => {
         button.addEventListener('click', () => {
-            showTab(button.getAttribute('onclick').replace("showTab('", "").replace("')", ""));
+            showTab(button.getAttribute('data-tab')); // เปลี่ยนเป็น data-tab เพื่อความยืดหยุ่น
         });
+    });
+
+    // Event Delegation สำหรับปุ่ม Action ในรายการ (สำคัญมาก)
+    document.getElementById('items-list').addEventListener('click', (event) => {
+        const target = event.target;
+        if (target.classList.contains('action-button')) {
+            const itemId = target.dataset.itemId;
+            const itemName = target.dataset.itemName;
+            const currentStatus = target.dataset.currentStatus;
+            const targetStatus = target.dataset.targetStatus; // สถานะที่ปุ่มนี้จะเปลี่ยนไป
+            handleStatusChange(itemId, itemName, currentStatus, targetStatus, target);
+        }
     });
 });
 
@@ -26,7 +38,7 @@ function showTab(tabId) {
     });
 
     document.getElementById(tabId).classList.add('active');
-    document.querySelector(`.tab-button[onclick="showTab('${tabId}')"]`).classList.add('active');
+    document.querySelector(`.tab-button[data-tab="${tabId}"]`).classList.add('active'); // เปลี่ยนเป็น data-tab
 
     // ถ้าเปลี่ยนมาที่ View Items tab ให้โหลดข้อมูลใหม่
     if (tabId === 'viewItems') {
@@ -44,44 +56,52 @@ async function loadItems() {
         const data = await response.json();
 
         if (data && data.length > 0) {
-            // กรองและเรียงลำดับ: แสดง Active ก่อน, และเรียงจากใหม่ไปเก่า
-            const activeItems = data.filter(item => item.Status !== 'Resolved');
+            // กรองและเรียงลำดับ: Active/Pending ก่อน, แล้ว Resolved, และเรียงจากใหม่ไปเก่า
+            const activePendingItems = data.filter(item => item.Status !== 'Resolved');
             const resolvedItems = data.filter(item => item.Status === 'Resolved');
 
-            const sortedActiveItems = activeItems.sort((a, b) => new Date(b.DatePosted) - new Date(a.DatePosted));
+            const sortedActivePendingItems = activePendingItems.sort((a, b) => new Date(b.DatePosted) - new Date(a.DatePosted));
             const sortedResolvedItems = resolvedItems.sort((a, b) => new Date(b.DatePosted) - new Date(a.DatePosted));
 
-            const displayItems = sortedActiveItems.concat(sortedResolvedItems); // แสดง Active ก่อน Resolved
+            const displayItems = sortedActivePendingItems.concat(sortedResolvedItems); // แสดง Active/Pending ก่อน Resolved
 
             itemsListDiv.innerHTML = ''; // ล้างข้อมูลเก่า
             displayItems.forEach(item => {
                 const itemCard = document.createElement('div');
-                // เพิ่มคลาส 'resolved' ถ้าสถานะเป็น Resolved เพื่อจัดสไตล์
-                itemCard.className = `item-card ${item.Status === 'Resolved' ? 'resolved' : ''}`;
+                // เพิ่มคลาสตามสถานะเพื่อจัดสไตล์
+                itemCard.className = `item-card status-${item.Status ? item.Status.toLowerCase() : 'active'}`;
 
-                const statusTagClass = item.Type === 'Lost' ? 'lost' : 'found';
+                const typeTagClass = item.Type === 'Lost' ? 'lost' : 'found';
 
-                // เพิ่มปุ่ม "Mark as Found/Resolved" ถ้าสถานะยังไม่ใช่ Resolved
-                const actionButton = item.Status !== 'Resolved' ? 
-                    `<button class="action-button mark-found-button" data-item-id="${item.ID}" data-item-name="${item.ItemName}">Mark as Resolved</button>` : '';
+                // สร้างปุ่ม Action ตามสถานะปัจจุบัน
+                let actionButtonsHtml = '';
+                const currentStatus = item.Status || 'Active'; // default to Active if undefined
+
+                if (currentStatus === 'Active') {
+                    actionButtonsHtml += `<button class="action-button status-change-button pending-button" data-item-id="${item.ID}" data-item-name="${item.ItemName}" data-current-status="${currentStatus}" data-target-status="Pending">Mark as Pending</button>`;
+                    actionButtonsHtml += `<button class="action-button status-change-button resolved-button" data-item-id="${item.ID}" data-item-name="${item.ItemName}" data-current-status="${currentStatus}" data-target-status="Resolved">Mark as Resolved</button>`;
+                } else if (currentStatus === 'Pending') {
+                    actionButtonsHtml += `<button class="action-button status-change-button active-button" data-item-id="${item.ID}" data-item-name="${item.ItemName}" data-current-status="${currentStatus}" data-target-status="Active">Mark as Active</button>`;
+                    actionButtonsHtml += `<button class="action-button status-change-button resolved-button" data-item-id="${item.ID}" data-item-name="${item.ItemName}" data-current-status="${currentStatus}" data-target-status="Resolved">Mark as Resolved</button>`;
+                } else if (currentStatus === 'Resolved') {
+                    // ไม่มีปุ่ม action สำหรับ Resolved
+                    actionButtonsHtml += '<span class="resolved-message">This item has been resolved.</span>';
+                }
 
                 itemCard.innerHTML = `
-                    <span class="status-tag ${statusTagClass}">${item.Type}</span>
+                    <span class="status-tag ${typeTagClass}">${item.Type}</span>
                     <h3 class="item-name">${item.ItemName}</h3>
-                    <p><span class="label">Status:</span> <span class="item-status ${item.Status === 'Resolved' ? 'status-resolved' : 'status-active'}">${item.Status || 'Active'}</span></p>
-                    <p><span class="label">Description:</span> ${item.Description}</p>
+                    <p><span class="label">Status:</span> <span class="item-status status-${currentStatus.toLowerCase()}">${currentStatus}</span></p>
+                    <p><span class="label">Description:</span> ${item.Description || 'N/A'}</p>
                     <p><span class="label">Location:</span> ${item.Location}</p>
                     <p><span class="label">Contact:</span> ${item.ContactInfo}</p>
                     <p><span class="label">Posted On:</span> ${item.DatePosted}</p>
                     ${item.ImageURL ? `<img src="${item.ImageURL}" alt="${item.ItemName}">` : ''}
-                    ${actionButton}
+                    <div class="item-actions">
+                        ${actionButtonsHtml}
+                    </div>
                 `;
                 itemsListDiv.appendChild(itemCard);
-            });
-
-            // เพิ่ม Event Listener ให้กับปุ่ม "Mark as Resolved" ทั้งหมด
-            document.querySelectorAll('.mark-found-button').forEach(button => {
-                button.addEventListener('click', handleMarkAsResolved);
             });
 
         } else {
@@ -93,30 +113,34 @@ async function loadItems() {
     }
 }
 
-// ฟังก์ชันใหม่สำหรับจัดการการคลิกปุ่ม "Mark as Resolved"
-async function handleMarkAsResolved(event) {
-    const itemId = event.target.dataset.itemId;
-    const itemName = event.target.dataset.itemName;
+// ฟังก์ชันใหม่สำหรับจัดการการคลิกปุ่มเปลี่ยนสถานะ
+async function handleStatusChange(itemId, itemName, currentStatus, targetStatus, buttonElement) {
+    const actionText = targetStatus === 'Resolved' ? 'RESOLVED' : targetStatus.toUpperCase();
+    const confirmationMessage = `Are you sure you want to mark "${itemName}" (ID: ${itemId}) as ${actionText}?`;
     
-    // ขอรหัสผ่านเพื่อยืนยันการเปลี่ยนสถานะ
-    const password = prompt(`Enter admin password to mark "${itemName}" (ID: ${itemId}) as Resolved:`);
+    const password = prompt(`Enter admin password to mark "${itemName}" (ID: ${itemId}) as ${actionText}:`);
     if (!password) {
         alert('Password required to change status.');
         return;
     }
 
-    if (!confirm(`Are you sure you want to mark "${itemName}" (ID: ${itemId}) as RESOLVED? This action cannot be undone.`)) {
+    if (!confirm(confirmationMessage)) {
         return;
     }
 
-    event.target.textContent = 'Updating...';
-    event.target.disabled = true;
+    // Disable all action buttons for this item during update
+    const itemCard = buttonElement.closest('.item-card');
+    const allButtons = itemCard.querySelectorAll('.action-button');
+    allButtons.forEach(btn => {
+        btn.textContent = 'Updating...';
+        btn.disabled = true;
+    });
 
     const formData = new FormData();
     formData.append('action', 'updateStatus');
     formData.append('password', password);
     formData.append('itemId', itemId);
-    formData.append('newStatus', 'Resolved'); // สถานะใหม่
+    formData.append('newStatus', targetStatus);
 
     try {
         const response = await fetch(GOOGLE_APPS_SCRIPT_URL, {
@@ -130,19 +154,27 @@ async function handleMarkAsResolved(event) {
             loadItems(); // โหลดข้อมูลใหม่เพื่อให้สถานะอัปเดตบนหน้าเว็บ
         } else {
             alert(`Error: ${result.message}`);
-            event.target.textContent = 'Mark as Resolved';
-            event.target.disabled = false;
+            // Restore button states if error
+            allButtons.forEach(btn => {
+                const initialTargetStatus = btn.dataset.targetStatus;
+                if (initialTargetStatus === 'Pending') btn.textContent = 'Mark as Pending';
+                else if (initialTargetStatus === 'Resolved') btn.textContent = 'Mark as Resolved';
+                else if (initialTargetStatus === 'Active') btn.textContent = 'Mark as Active';
+                btn.disabled = false;
+            });
         }
     } catch (error) {
         console.error('Error updating status:', error);
         alert('Network error or server issue. Could not update status.');
-        event.target.textContent = 'Mark as Resolved';
-        event.target.disabled = false;
+        allButtons.forEach(btn => {
+            const initialTargetStatus = btn.dataset.targetStatus;
+            if (initialTargetStatus === 'Pending') btn.textContent = 'Mark as Pending';
+            else if (initialTargetStatus === 'Resolved') btn.textContent = 'Mark as Resolved';
+            else if (initialTargetStatus === 'Active') btn.textContent = 'Mark as Active';
+            btn.disabled = false;
+        });
     }
 }
-
-// ... ส่วนโค้ดอื่นๆ ของ script.js (handlePostSubmit, showTab) ...
-
 
 
 // ฟังก์ชันจัดการการ Submit Form
@@ -176,6 +208,7 @@ async function handlePostSubmit(event) {
     formData.append('location', location);
     formData.append('contactInfo', contactInfo);
     formData.append('imageURL', imageURL);
+    // ไม่ต้องส่งสถานะ เพราะ Apps Script จะตั้งเป็น Active เริ่มต้น
 
     try {
         const response = await fetch(GOOGLE_APPS_SCRIPT_URL, {
@@ -200,5 +233,3 @@ async function handlePostSubmit(event) {
     }
 
 }
-
-// ... โค้ดที่มีอยู่แล้วใน script.js ...
