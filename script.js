@@ -153,7 +153,7 @@ async function handleStatusChange(event) {
 
 // ฟังก์ชันจัดการการ Submit Form
 async function handlePostSubmit(event) {
-    event.preventDefault(); 
+    event.preventDefault(); // ป้องกันการ reload หน้าเว็บ
 
     const postStatus = document.getElementById('post-status');
     postStatus.style.color = 'black';
@@ -165,6 +165,8 @@ async function handlePostSubmit(event) {
     const description = document.getElementById('description').value;
     const location = document.getElementById('location').value;
     const contactInfo = document.getElementById('contactInfo').value;
+    
+    // ดึงไฟล์แรกที่ผู้ใช้เลือก
     const imageInput = document.getElementById('imageFile');
     const imageFile = imageInput.files[0]; 
 
@@ -182,7 +184,10 @@ async function handlePostSubmit(event) {
     formData.append('description', description);
     formData.append('location', location);
     formData.append('contactInfo', contactInfo);
+    
+    // เพิ่มไฟล์รูปภาพลงใน FormData ถ้ามี
     if (imageFile) {
+        // ใช้ชื่อ 'image' เพื่อให้ตรงกับ e.files.image ใน Apps Script
         formData.append('image', imageFile); 
     }
 
@@ -191,33 +196,20 @@ async function handlePostSubmit(event) {
             method: 'POST',
             body: formData
         });
-
-        // *** เพิ่มการตรวจสอบ response ที่นี่ ***
-        if (!response.ok) { // ถ้า Status Code ไม่ใช่ 2xx (เช่น 400, 500)
-            const errorText = await response.text(); // พยายามอ่านข้อความ Error ดิบๆ
-            console.error('HTTP Error:', response.status, response.statusText, errorText);
-            postStatus.style.color = 'red';
-            postStatus.textContent = `Server Error: ${response.status} - ${response.statusText}. Details: ${errorText.substring(0, 100)}`; // แสดงข้อความ error
-            return;
-        }
-
-        const result = await response.json(); // ถ้า response.ok ถึงจะแปลงเป็น JSON
+        const result = await response.json();
 
         if (result.status === 'success') {
             postStatus.style.color = 'green';
             postStatus.textContent = result.message;
-            event.target.reset(); 
-            showTab('viewItems'); 
+            event.target.reset(); // ล้างฟอร์ม
+            showTab('viewItems'); // ไปที่หน้าแสดงข้อมูล
         } else {
             postStatus.style.color = 'red';
             postStatus.textContent = result.message || 'Error submitting data.';
-            console.error('Apps Script Error:', result.message); // เพิ่ม console.error สำหรับ Apps Script Error
         }
     } catch (error) {
-        // นี่คือ Error ที่เกิดจากการเชื่อมต่อ (เช่น Network Down) หรือโค้ด JavaScript ของเราเอง
-        console.error('Fetch/Network Error:', error);
+        console.error('Error submitting form:', error);
         postStatus.style.color = 'red';
         postStatus.textContent = 'Network error or server issue. Please try again.';
     }
 }
-
