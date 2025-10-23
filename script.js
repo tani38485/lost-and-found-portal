@@ -200,7 +200,7 @@ async function handlePostSubmit(event) {
         if (result.status === 'success') {
             postStatus.style.color = 'green';
             postStatus.textContent = result.message;
-            postForm.reset(); // ล้างฟอร์ม
+            event.target.reset(); // ล้างฟอร์ม
             showTab('viewItems'); // ไปที่หน้าแสดงข้อมูล
         } else {
             postStatus.style.color = 'red';
@@ -212,4 +212,5 @@ async function handlePostSubmit(event) {
         postStatus.textContent = 'Network error or server issue. Please try again.';
     }
 }
+
 
