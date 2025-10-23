@@ -166,9 +166,9 @@ async function handlePostSubmit(event) {
     const location = document.getElementById('location').value;
     const contactInfo = document.getElementById('contactInfo').value;
     
-    // เปลี่ยนจาก imageURL เป็น imageFile
+    // ดึงไฟล์แรกที่ผู้ใช้เลือก
     const imageInput = document.getElementById('imageFile');
-    const imageFile = imageInput.files[0]; // ดึงไฟล์แรกที่ผู้ใช้เลือก
+    const imageFile = imageInput.files[0]; 
 
     if (!password || !type || !itemName || !location || !contactInfo) {
         postStatus.style.color = 'red';
@@ -187,7 +187,8 @@ async function handlePostSubmit(event) {
     
     // เพิ่มไฟล์รูปภาพลงใน FormData ถ้ามี
     if (imageFile) {
-        formData.append('imageFile', imageFile); // ใช้ชื่อ 'imageFile'
+        // ใช้ชื่อ 'image' เพื่อให้ตรงกับ e.files.image ใน Apps Script
+        formData.append('image', imageFile); 
     }
 
     try {
@@ -212,5 +213,3 @@ async function handlePostSubmit(event) {
         postStatus.textContent = 'Network error or server issue. Please try again.';
     }
 }
-
-
