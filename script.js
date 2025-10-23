@@ -165,7 +165,10 @@ async function handlePostSubmit(event) {
     const description = document.getElementById('description').value;
     const location = document.getElementById('location').value;
     const contactInfo = document.getElementById('contactInfo').value;
-    const imageURL = document.getElementById('imageURL').value;
+    
+    // เปลี่ยนจาก imageURL เป็น imageFile
+    const imageInput = document.getElementById('imageFile');
+    const imageFile = imageInput.files[0]; // ดึงไฟล์แรกที่ผู้ใช้เลือก
 
     if (!password || !type || !itemName || !location || !contactInfo) {
         postStatus.style.color = 'red';
@@ -181,7 +184,11 @@ async function handlePostSubmit(event) {
     formData.append('description', description);
     formData.append('location', location);
     formData.append('contactInfo', contactInfo);
-    formData.append('imageURL', imageURL);
+    
+    // เพิ่มไฟล์รูปภาพลงใน FormData ถ้ามี
+    if (imageFile) {
+        formData.append('imageFile', imageFile); // ใช้ชื่อ 'imageFile'
+    }
 
     try {
         const response = await fetch(GOOGLE_APPS_SCRIPT_URL, {
@@ -205,3 +212,4 @@ async function handlePostSubmit(event) {
         postStatus.textContent = 'Network error or server issue. Please try again.';
     }
 }
+
