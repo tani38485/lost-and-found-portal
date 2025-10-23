@@ -55,6 +55,34 @@ async function loadItems() {
 
             itemsListDiv.innerHTML = ''; // ล้างข้อมูลเก่า
             displayItems.forEach(item => {
+                // ... ในฟังก์ชัน loadItems, ภายใน loop item.forEach ...
+                const actionButtons = [];
+                
+                // ปุ่ม Mark as Pending (สำหรับรายการ Active เท่านั้น)
+                if (item.Status === 'Active' || !item.Status) { // ถ้าเป็น Active หรือไม่มีสถานะ (ถือว่า Active)
+                    actionButtons.push(`<button class="action-button mark-pending-button" data-item-id="${item.ID}" data-item-name="${item.ItemName}">Mark as Pending</button>`);
+                }
+                
+                // ปุ่ม Mark as Resolved (สำหรับรายการ Active หรือ Pending)
+                if (item.Status === 'Active' || item.Status === 'Pending' || !item.Status) {
+                    actionButtons.push(`<button class="action-button mark-resolved-button" data-item-id="${item.ID}" data-item-name="${item.ItemName}">Mark as Resolved</button>`);
+                }
+                
+                itemCard.innerHTML = `
+                    <span class="status-tag ${statusTagClass}">${item.Type}</span>
+                    <h3 class="item-name">${item.ItemName}</h3>
+                    <p><span class="label">Status:</span> <span class="item-status ${item.Status === 'Resolved' ? 'status-resolved' : item.Status === 'Pending' ? 'status-pending' : 'status-active'}">${item.Status || 'Active'}</span></p>
+                    <p><span class="label">Description:</span> ${item.Description}</p>
+                    <p><span class="label">Location:</span> ${item.Location}</p>
+                    <p><span class="label">Contact:</span> ${item.ContactInfo}</p>
+                    <p><span class="label">Posted On:</span> ${item.DatePosted}</p>
+                    ${item.ImageURL ? `<img src="${item.ImageURL}" alt="${item.ItemName}">` : ''}
+                    <div class="action-buttons-group">
+                        ${actionButtons.join('')}
+                    </div>
+                `;
+                itemCard.appendChild(itemCard); // ต้องแน่ใจว่าคุณ append itemCard เข้าไปใน itemsListDiv
+                // ...
                 const itemCard = document.createElement('div');
                 // เพิ่มคลาส 'resolved' ถ้าสถานะเป็น Resolved เพื่อจัดสไตล์
                 itemCard.className = `item-card ${item.Status === 'Resolved' ? 'resolved' : ''}`;
@@ -78,7 +106,17 @@ async function loadItems() {
                 `;
                 itemsListDiv.appendChild(itemCard);
             });
-
+            // ... หลังจาก loop item.forEach ใน loadItems ...
+            
+            // เพิ่ม Event Listener สำหรับปุ่ม "Mark as Pending"
+            document.querySelectorAll('.mark-pending-button').forEach(button => {
+                button.addEventListener('click', handleMarkAsPending);
+            });
+            
+            // เพิ่ม Event Listener สำหรับปุ่ม "Mark as Resolved" (อาจต้องเปลี่ยน class name เป็น mark-resolved-button)
+            document.querySelectorAll('.mark-resolved-button').forEach(button => {
+                button.addEventListener('click', handleMarkAsResolved);
+            });
             // เพิ่ม Event Listener ให้กับปุ่ม "Mark as Resolved" ทั้งหมด
             document.querySelectorAll('.mark-found-button').forEach(button => {
                 button.addEventListener('click', handleMarkAsResolved);
@@ -142,7 +180,53 @@ async function handleMarkAsResolved(event) {
 }
 
 // ... ส่วนโค้ดอื่นๆ ของ script.js (handlePostSubmit, showTab) ...
+// ... ใต้ฟังก์ชัน handleMarkAsResolved ...
 
+async function handleMarkAsPending(event) {
+    const itemId = event.target.dataset.itemId;
+    const itemName = event.target.dataset.itemName;
+    
+    const password = prompt(`Enter admin password to mark "${itemName}" (ID: ${itemId}) as Pending:`);
+    if (!password) {
+        alert('Password required to change status.');
+        return;
+    }
+
+    if (!confirm(`Are you sure you want to mark "${itemName}" (ID: ${itemId}) as PENDING?`)) {
+        return;
+    }
+
+    event.target.textContent = 'Updating...';
+    event.target.disabled = true;
+
+    const formData = new FormData();
+    formData.append('action', 'updateStatus');
+    formData.append('password', password);
+    formData.append('itemId', itemId);
+    formData.append('newStatus', 'Pending'); // สถานะใหม่
+
+    try {
+        const response = await fetch(GOOGLE_APPS_SCRIPT_URL, {
+            method: 'POST',
+            body: formData
+        });
+        const result = await response.json();
+
+        if (result.status === 'success') {
+            alert(result.message);
+            loadItems(); // โหลดข้อมูลใหม่
+        } else {
+            alert(`Error: ${result.message}`);
+            event.target.textContent = 'Mark as Pending';
+            event.target.disabled = false;
+        }
+    } catch (error) {
+        console.error('Error updating status to Pending:', error);
+        alert('Network error or server issue. Could not update status.');
+        event.target.textContent = 'Mark as Pending';
+        event.target.disabled = false;
+    }
+}
 
 
 // ฟังก์ชันจัดการการ Submit Form
@@ -202,4 +286,5 @@ async function handlePostSubmit(event) {
 }
 
 // ... โค้ดที่มีอยู่แล้วใน script.js ...
+
 
