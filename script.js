@@ -64,6 +64,7 @@ async function loadItems() {
 
                 // สร้างกลุ่มปุ่มสำหรับการเปลี่ยนสถานะ
                 let statusButtons = '';
+                // แสดงปุ่มสำหรับเปลี่ยนสถานะหากไม่ใช่ 'Resolved'
                 if (item.Status !== 'Resolved') {
                     statusButtons = `
                         <div class="status-action-buttons">
@@ -82,7 +83,7 @@ async function loadItems() {
                     <p><span class="label">Location:</span> ${item.Location}</p>
                     <p><span class="label">Contact:</span> ${item.ContactInfo}</p>
                     <p><span class="label">Posted On:</span> ${item.DatePosted}</p>
-                    ${item.ImageURL ? `<img src="${item.ImageURL}" alt="${item.ItemName}">` : ''}
+                    ${item.ImageURL ? `<img src="${item.ImageURL}" alt="${item.ItemName}" loading="lazy">` : ''}
                     ${statusButtons}
                 `;
                 itemsListDiv.appendChild(itemCard);
@@ -176,6 +177,14 @@ async function handlePostSubmit(event) {
         return;
     }
 
+    // ตรวจสอบขนาดไฟล์ภาพ ไม่ควรเกิน 20MB
+    const MAX_FILE_SIZE_MB = 20;
+    if (imageFile && imageFile.size > MAX_FILE_SIZE_MB * 1024 * 1024) {
+        postStatus.style.color = 'red';
+        postStatus.textContent = `Image file size exceeds ${MAX_FILE_SIZE_MB}MB. Please choose a smaller image.`;
+        return;
+    }
+
     const formData = new FormData();
     formData.append('action', 'postData');
     formData.append('password', password);
@@ -187,7 +196,6 @@ async function handlePostSubmit(event) {
     
     // เพิ่มไฟล์รูปภาพลงใน FormData ถ้ามี
     if (imageFile) {
-        // ใช้ชื่อ 'image' เพื่อให้ตรงกับ e.files.image ใน Apps Script
         formData.append('image', imageFile); 
     }
 
