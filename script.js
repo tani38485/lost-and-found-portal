@@ -71,7 +71,13 @@ async function loadItems() {
                     button.addEventListener('click', handleMarkAsResolved);
                 });
 
-                // ... ในฟังก์ชัน loadItems, ภายใน loop item.forEach ...
+
+                const itemCard = document.createElement('div');
+                // เพิ่มคลาส 'resolved' ถ้าสถานะเป็น Resolved เพื่อจัดสไตล์
+                itemCard.className = `item-card ${item.Status === 'Resolved' ? 'resolved' : ''}`;
+
+                const statusTagClass = item.Type === 'Lost' ? 'lost' : 'found';
+                                // ... ในฟังก์ชัน loadItems, ภายใน loop item.forEach ...
                 const actionButtons = [];
                 
                 // ปุ่ม Mark as Pending (สำหรับรายการ Active เท่านั้น)
@@ -99,12 +105,6 @@ async function loadItems() {
                 `;
                 itemCard.appendChild(itemCard); // ต้องแน่ใจว่าคุณ append itemCard เข้าไปใน itemsListDiv
                 // ...
-                const itemCard = document.createElement('div');
-                // เพิ่มคลาส 'resolved' ถ้าสถานะเป็น Resolved เพื่อจัดสไตล์
-                itemCard.className = `item-card ${item.Status === 'Resolved' ? 'resolved' : ''}`;
-
-                const statusTagClass = item.Type === 'Lost' ? 'lost' : 'found';
-
                 // เพิ่มปุ่ม "Mark as Found/Resolved" ถ้าสถานะยังไม่ใช่ Resolved
                 const actionButton = item.Status !== 'Resolved' ? 
                     `<button class="action-button mark-found-button" data-item-id="${item.ID}" data-item-name="${item.ItemName}">Mark as Resolved</button>` : '';
@@ -287,6 +287,7 @@ async function handlePostSubmit(event) {
 }
 
 // ... โค้ดที่มีอยู่แล้วใน script.js ...
+
 
 
 
