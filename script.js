@@ -1,5 +1,5 @@
 // *** เปลี่ยนตรงนี้เป็น Web App URL ของ Google Apps Script ของคุณ ***
-const GOOGLE_APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyKb-0EYiyUb9lyxPg15cCI_oGmUsz2EQJflVYDSqRqKJq8ctCOdsZ9L9cQuhz_QQMt-Q/exec'; 
+const GOOGLE_APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwudcHfoou4uT-4JYWogOjpeiZ2wserNMUPOy2c1jkDc2gHGMp5Q89I3DwO1rElU6vQ/exec'; 
 
 document.addEventListener('DOMContentLoaded', () => {
     loadItems(); // โหลดข้อมูลเมื่อหน้าเว็บโหลดเสร็จ
@@ -166,9 +166,9 @@ async function handlePostSubmit(event) {
     const location = document.getElementById('location').value;
     const contactInfo = document.getElementById('contactInfo').value;
     
-    // ดึงไฟล์แรกที่ผู้ใช้เลือก
+    // เปลี่ยนจาก imageURL เป็น imageFile
     const imageInput = document.getElementById('imageFile');
-    const imageFile = imageInput.files[0]; 
+    const imageFile = imageInput.files[0]; // ดึงไฟล์แรกที่ผู้ใช้เลือก
 
     if (!password || !type || !itemName || !location || !contactInfo) {
         postStatus.style.color = 'red';
@@ -187,8 +187,7 @@ async function handlePostSubmit(event) {
     
     // เพิ่มไฟล์รูปภาพลงใน FormData ถ้ามี
     if (imageFile) {
-        // ใช้ชื่อ 'image' เพื่อให้ตรงกับ e.files.image ใน Apps Script
-        formData.append('image', imageFile); 
+        formData.append('imageFile', imageFile); // ใช้ชื่อ 'imageFile'
     }
 
     try {
@@ -213,3 +212,4 @@ async function handlePostSubmit(event) {
         postStatus.textContent = 'Network error or server issue. Please try again.';
     }
 }
+
