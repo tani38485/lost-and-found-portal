@@ -131,12 +131,6 @@ async function loadItems() {
     }
 }
 async function handleStatusChange(itemId, itemName, currentStatus, targetStatus, buttonElement) {
-    // ... โค้ดที่ขอรหัสผ่าน, ยืนยัน, และส่ง formData ไป Apps Script ...
-    formData.append('newStatus', targetStatus); // <-- ตรงนี้คือสิ่งสำคัญ!
-    // ...
-}
-// ฟังก์ชันใหม่สำหรับจัดการการคลิกปุ่มเปลี่ยนสถานะ
-async function handleStatusChange(itemId, itemName, currentStatus, targetStatus, buttonElement) {
     const actionText = targetStatus === 'Resolved' ? 'RESOLVED' : targetStatus.toUpperCase();
     const confirmationMessage = `Are you sure you want to mark "${itemName}" (ID: ${itemId}) as ${actionText}?`;
     
@@ -163,7 +157,7 @@ async function handleStatusChange(itemId, itemName, currentStatus, targetStatus,
     formData.append('password', password);
     formData.append('itemId', itemId);
     formData.append('newStatus', targetStatus);
-
+    
     try {
         const response = await fetch(GOOGLE_APPS_SCRIPT_URL, {
             method: 'POST',
@@ -255,4 +249,5 @@ async function handlePostSubmit(event) {
     }
 
 }
+
 
