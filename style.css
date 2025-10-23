@@ -131,6 +131,20 @@ button[type="submit"]:hover {
     justify-content: space-between; /* Push contact info to bottom if needed */
 }
 
+/* Status specific card styling */
+.item-card.resolved {
+    opacity: 0.7; 
+    background-color: #f0f0f0;
+    border-color: #d0d0d0;
+}
+.item-card.pending {
+    border-left: 5px solid #ffc107; /* ส้ม */
+}
+.item-card.active {
+    border-left: 5px solid #28a745; /* เขียว */
+}
+
+
 .item-card h3 {
     margin-top: 0;
     color: #007bff;
@@ -180,13 +194,6 @@ small {
     color: #666;
     display: block; /* Ensures it takes its own line */
     margin-top: 5px;
-
-}
-
-.item-card.resolved {
-    opacity: 0.7; /* ทำให้รายการที่ Resolved ดูจางลง */
-    background-color: #f0f0f0;
-    border-color: #d0d0d0;
 }
 
 .item-card .item-name {
@@ -203,34 +210,73 @@ small {
     white-space: nowrap; /* ป้องกันการขึ้นบรรทัดใหม่ */
 }
 
-.item-card .status-active {
+/* Status specific text styling */
+.item-status.status-active {
     background-color: #28a745; /* Green for active */
     color: white;
 }
 
-.item-card .status-resolved {
+.item-status.status-resolved {
     background-color: #6c757d; /* Grey for resolved */
     color: white;
 }
 
-.action-button {
-    background-color: #ffc107; /* Yellow for action button */
+.item-status.status-pending {
+    background-color: #ffc107; /* Yellow/Orange for pending */
     color: #333;
-    padding: 8px 15px;
+}
+
+.status-action-buttons {
+    margin-top: 15px;
+    display: flex;
+    flex-wrap: wrap; /* ให้ปุ่มขึ้นบรรทัดใหม่ได้ถ้าไม่พอ */
+    gap: 8px; /* ระยะห่างระหว่างปุ่ม */
+    justify-content: center;
+}
+
+.action-button {
+    padding: 8px 12px;
     border: none;
     border-radius: 4px;
     cursor: pointer;
-    font-size: 0.95em;
-    margin-top: 15px;
-    width: 100%;
-    transition: background-color 0.3s ease;
+    font-size: 0.9em;
+    flex-grow: 1; /* ให้ปุ่มขยายเต็มพื้นที่ที่มี */
+    min-width: 100px; /* กำหนดความกว้างขั้นต่ำ */
+    max-width: 100%; /* ไม่ให้เกินความกว้างของการ์ด */
+    transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 .action-button:hover {
-    background-color: #e0a800;
+    opacity: 0.9;
 }
 
 .action-button:disabled {
     background-color: #ccc;
     cursor: not-allowed;
+    color: #666;
+}
+
+/* Specific button styles */
+.mark-active-button {
+    background-color: #28a745; /* Green */
+    color: white;
+}
+.mark-active-button:hover {
+    background-color: #218838;
+}
+
+.mark-pending-button {
+    background-color: #ffc107; /* Orange */
+    color: #333;
+}
+.mark-pending-button:hover {
+    background-color: #e0a800;
+}
+
+.mark-resolved-button {
+    background-color: #dc3545; /* Red */
+    color: white;
+}
+.mark-resolved-button:hover {
+    background-color: #c82333;
 }
