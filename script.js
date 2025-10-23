@@ -48,6 +48,7 @@ async function loadItems() {
             const activeItems = data.filter(item => item.Status !== 'Resolved');
             const resolvedItems = data.filter(item => item.Status === 'Resolved');
 
+            // ใช้ DatePosted เป็น Date object เพื่อเปรียบเทียบ
             const sortedActiveItems = activeItems.sort((a, b) => new Date(b.DatePosted) - new Date(a.DatePosted));
             const sortedResolvedItems = resolvedItems.sort((a, b) => new Date(b.DatePosted) - new Date(a.DatePosted));
 
@@ -61,7 +62,7 @@ async function loadItems() {
 
                 const statusTagClass = item.Type === 'Lost' ? 'lost' : 'found';
 
-                // เพิ่มปุ่ม "Mark as Found/Resolved" ถ้าสถานะยังไม่ใช่ Resolved
+                // เพิ่มปุ่ม "Mark as Resolved" ถ้าสถานะยังไม่ใช่ Resolved
                 const actionButton = item.Status !== 'Resolved' ? 
                     `<button class="action-button mark-found-button" data-item-id="${item.ID}" data-item-name="${item.ItemName}">Mark as Resolved</button>` : '';
 
@@ -69,7 +70,7 @@ async function loadItems() {
                     <span class="status-tag ${statusTagClass}">${item.Type}</span>
                     <h3 class="item-name">${item.ItemName}</h3>
                     <p><span class="label">Status:</span> <span class="item-status ${item.Status === 'Resolved' ? 'status-resolved' : 'status-active'}">${item.Status || 'Active'}</span></p>
-                    <p><span class="label">Description:</span> ${item.Description}</p>
+                    <p><span class="label">Description:</span> ${item.Description || '-'}</p>
                     <p><span class="label">Location:</span> ${item.Location}</p>
                     <p><span class="label">Contact:</span> ${item.ContactInfo}</p>
                     <p><span class="label">Posted On:</span> ${item.DatePosted}</p>
@@ -141,10 +142,6 @@ async function handleMarkAsResolved(event) {
     }
 }
 
-// ... ส่วนโค้ดอื่นๆ ของ script.js (handlePostSubmit, showTab) ...
-
-
-
 // ฟังก์ชันจัดการการ Submit Form
 async function handlePostSubmit(event) {
     event.preventDefault(); // ป้องกันการ reload หน้าเว็บ
@@ -198,7 +195,4 @@ async function handlePostSubmit(event) {
         postStatus.style.color = 'red';
         postStatus.textContent = 'Network error or server issue. Please try again.';
     }
-
 }
-
-// ... โค้ดที่มีอยู่แล้วใน script.js ...
