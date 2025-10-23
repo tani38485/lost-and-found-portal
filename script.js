@@ -74,7 +74,24 @@ async function loadItems() {
                 const typeTagClass = item.Type === 'Lost' ? 'lost' : 'found';
 
                 // สร้างปุ่ม Action ตามสถานะปัจจุบัน
+                // ... ในฟังก์ชัน loadItems() ภายใน itemCard.innerHTML ...
+
+                // สร้างปุ่ม Action ตามสถานะปัจจุบัน
                 let actionButtonsHtml = '';
+                const currentStatus = item.Status || 'Active'; // default to Active if undefined
+                
+                if (currentStatus === 'Active') {
+                    actionButtonsHtml += `<button class="action-button status-change-button pending-button" data-item-id="${item.ID}" data-item-name="${item.ItemName}" data-current-status="${currentStatus}" data-target-status="Pending">Mark as Pending</button>`;
+                    actionButtonsHtml += `<button class="action-button status-change-button resolved-button" data-item-id="${item.ID}" data-item-name="${item.ItemName}" data-current-status="${currentStatus}" data-target-status="Resolved">Mark as Resolved</button>`;
+                } else if (currentStatus === 'Pending') {
+                    actionButtonsHtml += `<button class="action-button status-change-button active-button" data-item-id="${item.ID}" data-item-name="${item.ItemName}" data-current-status="${currentStatus}" data-target-status="Active">Mark as Active</button>`;
+                    actionButtonsHtml += `<button class="action-button status-change-button resolved-button" data-item-id="${item.ID}" data-item-name="${item.ItemName}" data-current-status="${currentStatus}" data-target-status="Resolved">Mark as Resolved</button>`;
+                } else if (currentStatus === 'Resolved') {
+                    // ไม่มีปุ่ม action สำหรับ Resolved
+                    actionButtonsHtml += '<span class="resolved-message">This item has been resolved.</span>';
+                }
+                
+                // ... ใน itemCard.innerHTML จะมี div ที่ใช้ actionButtonsHtml ...
                 const currentStatus = item.Status || 'Active'; // default to Active if undefined
 
                 if (currentStatus === 'Active') {
@@ -89,6 +106,7 @@ async function loadItems() {
                 }
 
                 itemCard.innerHTML = `
+                
                     <span class="status-tag ${typeTagClass}">${item.Type}</span>
                     <h3 class="item-name">${item.ItemName}</h3>
                     <p><span class="label">Status:</span> <span class="item-status status-${currentStatus.toLowerCase()}">${currentStatus}</span></p>
@@ -112,7 +130,11 @@ async function loadItems() {
         itemsListDiv.innerHTML = '<p style="color: red;">Error loading items. Please try again later.</p>';
     }
 }
-
+async function handleStatusChange(itemId, itemName, currentStatus, targetStatus, buttonElement) {
+    // ... โค้ดที่ขอรหัสผ่าน, ยืนยัน, และส่ง formData ไป Apps Script ...
+    formData.append('newStatus', targetStatus); // <-- ตรงนี้คือสิ่งสำคัญ!
+    // ...
+}
 // ฟังก์ชันใหม่สำหรับจัดการการคลิกปุ่มเปลี่ยนสถานะ
 async function handleStatusChange(itemId, itemName, currentStatus, targetStatus, buttonElement) {
     const actionText = targetStatus === 'Resolved' ? 'RESOLVED' : targetStatus.toUpperCase();
@@ -233,3 +255,4 @@ async function handlePostSubmit(event) {
     }
 
 }
+
