@@ -44,100 +44,6 @@ async function loadItems() {
         const data = await response.json();
 
         if (data && data.length > 0) {
-            itemsListDiv.innerHTML = ''; // ล้างข้อมูลเก่า
-            data.forEach(item => {
-                const itemCard = document.createElement('div');
-                itemCard.className = 'item-card';
-
-                const statusTagClass = item.Type === 'Lost' ? 'lost' : 'found';
-
-                itemCard.innerHTML = `
-                    <span class="status-tag ${statusTagClass}">${item.Type}</span>
-                    <h3>${item.ItemName}</h3>
-                    <p><span class="label">Description:</span> ${item.Description}</p>
-                    <p><span class="label">Location:</span> ${item.Location}</p>
-                    <p><span class="label">Contact:</span> ${item.ContactInfo}</p>
-                    <p><span class="label">Posted On:</span> ${item.DatePosted}</p>
-                    ${item.ImageURL ? `<img src="${item.ImageURL}" alt="${item.ItemName}">` : ''}
-                `;
-                itemsListDiv.appendChild(itemCard);
-            });
-        } else {
-            itemsListDiv.innerHTML = '<p>No items found yet.</p>';
-        }
-    } catch (error) {
-        console.error('Error loading items:', error);
-        itemsListDiv.innerHTML = '<p style="color: red;">Error loading items. Please try again later.</p>';
-    }
-}
-
-// ฟังก์ชันจัดการการ Submit Form
-async function handlePostSubmit(event) {
-    event.preventDefault(); // ป้องกันการ reload หน้าเว็บ
-
-    const postStatus = document.getElementById('post-status');
-    postStatus.style.color = 'black';
-    postStatus.textContent = 'Submitting...';
-
-    const password = document.getElementById('post-password').value;
-    const type = document.getElementById('type').value;
-    const itemName = document.getElementById('itemName').value;
-    const description = document.getElementById('description').value;
-    const location = document.getElementById('location').value;
-    const contactInfo = document.getElementById('contactInfo').value;
-    const imageURL = document.getElementById('imageURL').value;
-
-    if (!password || !type || !itemName || !location || !contactInfo) {
-        postStatus.style.color = 'red';
-        postStatus.textContent = 'Please fill in all required fields (including password).';
-        return;
-    }
-
-    const formData = new FormData();
-    formData.append('action', 'postData');
-    formData.append('password', password);
-    formData.append('type', type);
-    formData.append('itemName', itemName);
-    formData.append('description', description);
-    formData.append('location', location);
-    formData.append('contactInfo', contactInfo);
-    formData.append('imageURL', imageURL);
-
-    try {
-        const response = await fetch(GOOGLE_APPS_SCRIPT_URL, {
-            method: 'POST',
-            body: formData
-        });
-        const result = await response.json();
-
-        if (result.status === 'success') {
-            postStatus.style.color = 'green';
-            postStatus.textContent = result.message;
-            postForm.reset(); // ล้างฟอร์ม
-            showTab('viewItems'); // ไปที่หน้าแสดงข้อมูล
-        } else {
-            postStatus.style.color = 'red';
-            postStatus.textContent = result.message || 'Error submitting data.';
-        }
-    } catch (error) {
-        console.error('Error submitting form:', error);
-        postStatus.style.color = 'red';
-        postStatus.textContent = 'Network error or server issue. Please try again.';
-    }
-
-}
-
-// ... โค้ดที่มีอยู่แล้วใน script.js ...
-
-async function loadItems() {
-    const itemsListDiv = document.getElementById('items-list');
-    itemsListDiv.innerHTML = '<p>Loading items...</p>'; // แสดงสถานะโหลด
-
-    try {
-        const response = await fetch(`${GOOGLE_APPS_SCRIPT_URL}?action=getData`);
-        const data = await response.json();
-
-        if (data && data.length > 0) {
             // กรองและเรียงลำดับ: แสดง Active ก่อน, และเรียงจากใหม่ไปเก่า
             const activeItems = data.filter(item => item.Status !== 'Resolved');
             const resolvedItems = data.filter(item => item.Status === 'Resolved');
@@ -236,3 +142,64 @@ async function handleMarkAsResolved(event) {
 }
 
 // ... ส่วนโค้ดอื่นๆ ของ script.js (handlePostSubmit, showTab) ...
+
+
+
+// ฟังก์ชันจัดการการ Submit Form
+async function handlePostSubmit(event) {
+    event.preventDefault(); // ป้องกันการ reload หน้าเว็บ
+
+    const postStatus = document.getElementById('post-status');
+    postStatus.style.color = 'black';
+    postStatus.textContent = 'Submitting...';
+
+    const password = document.getElementById('post-password').value;
+    const type = document.getElementById('type').value;
+    const itemName = document.getElementById('itemName').value;
+    const description = document.getElementById('description').value;
+    const location = document.getElementById('location').value;
+    const contactInfo = document.getElementById('contactInfo').value;
+    const imageURL = document.getElementById('imageURL').value;
+
+    if (!password || !type || !itemName || !location || !contactInfo) {
+        postStatus.style.color = 'red';
+        postStatus.textContent = 'Please fill in all required fields (including password).';
+        return;
+    }
+
+    const formData = new FormData();
+    formData.append('action', 'postData');
+    formData.append('password', password);
+    formData.append('type', type);
+    formData.append('itemName', itemName);
+    formData.append('description', description);
+    formData.append('location', location);
+    formData.append('contactInfo', contactInfo);
+    formData.append('imageURL', imageURL);
+
+    try {
+        const response = await fetch(GOOGLE_APPS_SCRIPT_URL, {
+            method: 'POST',
+            body: formData
+        });
+        const result = await response.json();
+
+        if (result.status === 'success') {
+            postStatus.style.color = 'green';
+            postStatus.textContent = result.message;
+            postForm.reset(); // ล้างฟอร์ม
+            showTab('viewItems'); // ไปที่หน้าแสดงข้อมูล
+        } else {
+            postStatus.style.color = 'red';
+            postStatus.textContent = result.message || 'Error submitting data.';
+        }
+    } catch (error) {
+        console.error('Error submitting form:', error);
+        postStatus.style.color = 'red';
+        postStatus.textContent = 'Network error or server issue. Please try again.';
+    }
+
+}
+
+// ... โค้ดที่มีอยู่แล้วใน script.js ...
+
