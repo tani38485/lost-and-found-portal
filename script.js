@@ -82,7 +82,7 @@ async function loadItems() {
                     <p><span class="label">Location:</span> ${item.Location}</p>
                     <p><span class="label">Contact:</span> ${item.ContactInfo}</p>
                     <p><span class="label">Posted On:</span> ${item.DatePosted}</p>
-                    ${item.ImageURL ? `<img src="${item.ImageURL}" alt="${item.ItemName}" loading="lazy">` : ''}
+                    ${item.ImageURL ? `<img src="${item.ImageURL}" alt="${item.ItemName}">` : ''}
                     ${statusButtons}
                 `;
                 itemsListDiv.appendChild(itemCard);
