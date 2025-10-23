@@ -124,4 +124,115 @@ async function handlePostSubmit(event) {
         postStatus.style.color = 'red';
         postStatus.textContent = 'Network error or server issue. Please try again.';
     }
+
 }
+
+// ... โค้ดที่มีอยู่แล้วใน script.js ...
+
+async function loadItems() {
+    const itemsListDiv = document.getElementById('items-list');
+    itemsListDiv.innerHTML = '<p>Loading items...</p>'; // แสดงสถานะโหลด
+
+    try {
+        const response = await fetch(`${GOOGLE_APPS_SCRIPT_URL}?action=getData`);
+        const data = await response.json();
+
+        if (data && data.length > 0) {
+            // กรองและเรียงลำดับ: แสดง Active ก่อน, และเรียงจากใหม่ไปเก่า
+            const activeItems = data.filter(item => item.Status !== 'Resolved');
+            const resolvedItems = data.filter(item => item.Status === 'Resolved');
+
+            const sortedActiveItems = activeItems.sort((a, b) => new Date(b.DatePosted) - new Date(a.DatePosted));
+            const sortedResolvedItems = resolvedItems.sort((a, b) => new Date(b.DatePosted) - new Date(a.DatePosted));
+
+            const displayItems = sortedActiveItems.concat(sortedResolvedItems); // แสดง Active ก่อน Resolved
+
+            itemsListDiv.innerHTML = ''; // ล้างข้อมูลเก่า
+            displayItems.forEach(item => {
+                const itemCard = document.createElement('div');
+                // เพิ่มคลาส 'resolved' ถ้าสถานะเป็น Resolved เพื่อจัดสไตล์
+                itemCard.className = `item-card ${item.Status === 'Resolved' ? 'resolved' : ''}`;
+
+                const statusTagClass = item.Type === 'Lost' ? 'lost' : 'found';
+
+                // เพิ่มปุ่ม "Mark as Found/Resolved" ถ้าสถานะยังไม่ใช่ Resolved
+                const actionButton = item.Status !== 'Resolved' ? 
+                    `<button class="action-button mark-found-button" data-item-id="${item.ID}" data-item-name="${item.ItemName}">Mark as Resolved</button>` : '';
+
+                itemCard.innerHTML = `
+                    <span class="status-tag ${statusTagClass}">${item.Type}</span>
+                    <h3 class="item-name">${item.ItemName}</h3>
+                    <p><span class="label">Status:</span> <span class="item-status ${item.Status === 'Resolved' ? 'status-resolved' : 'status-active'}">${item.Status || 'Active'}</span></p>
+                    <p><span class="label">Description:</span> ${item.Description}</p>
+                    <p><span class="label">Location:</span> ${item.Location}</p>
+                    <p><span class="label">Contact:</span> ${item.ContactInfo}</p>
+                    <p><span class="label">Posted On:</span> ${item.DatePosted}</p>
+                    ${item.ImageURL ? `<img src="${item.ImageURL}" alt="${item.ItemName}">` : ''}
+                    ${actionButton}
+                `;
+                itemsListDiv.appendChild(itemCard);
+            });
+
+            // เพิ่ม Event Listener ให้กับปุ่ม "Mark as Resolved" ทั้งหมด
+            document.querySelectorAll('.mark-found-button').forEach(button => {
+                button.addEventListener('click', handleMarkAsResolved);
+            });
+
+        } else {
+            itemsListDiv.innerHTML = '<p>No items found yet.</p>';
+        }
+    } catch (error) {
+        console.error('Error loading items:', error);
+        itemsListDiv.innerHTML = '<p style="color: red;">Error loading items. Please try again later.</p>';
+    }
+}
+
+// ฟังก์ชันใหม่สำหรับจัดการการคลิกปุ่ม "Mark as Resolved"
+async function handleMarkAsResolved(event) {
+    const itemId = event.target.dataset.itemId;
+    const itemName = event.target.dataset.itemName;
+    
+    // ขอรหัสผ่านเพื่อยืนยันการเปลี่ยนสถานะ
+    const password = prompt(`Enter admin password to mark "${itemName}" (ID: ${itemId}) as Resolved:`);
+    if (!password) {
+        alert('Password required to change status.');
+        return;
+    }
+
+    if (!confirm(`Are you sure you want to mark "${itemName}" (ID: ${itemId}) as RESOLVED? This action cannot be undone.`)) {
+        return;
+    }
+
+    event.target.textContent = 'Updating...';
+    event.target.disabled = true;
+
+    const formData = new FormData();
+    formData.append('action', 'updateStatus');
+    formData.append('password', password);
+    formData.append('itemId', itemId);
+    formData.append('newStatus', 'Resolved'); // สถานะใหม่
+
+    try {
+        const response = await fetch(GOOGLE_APPS_SCRIPT_URL, {
+            method: 'POST',
+            body: formData
+        });
+        const result = await response.json();
+
+        if (result.status === 'success') {
+            alert(result.message);
+            loadItems(); // โหลดข้อมูลใหม่เพื่อให้สถานะอัปเดตบนหน้าเว็บ
+        } else {
+            alert(`Error: ${result.message}`);
+            event.target.textContent = 'Mark as Resolved';
+            event.target.disabled = false;
+        }
+    } catch (error) {
+        console.error('Error updating status:', error);
+        alert('Network error or server issue. Could not update status.');
+        event.target.textContent = 'Mark as Resolved';
+        event.target.disabled = false;
+    }
+}
+
+// ... ส่วนโค้ดอื่นๆ ของ script.js (handlePostSubmit, showTab) ...
