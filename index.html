@@ -57,9 +57,9 @@
                     <input type="text" id="contactInfo" required>
                 </div>
                 <div class="form-group">
-                    <label for="imageURL">Image URL (Optional):</label>
-                    <input type="url" id="imageURL" placeholder="e.g., https://example.com/image.jpg">
-                    <small>For now, you'll need to upload images to a service like Imgur/Google Photos/Dropbox and paste the direct image URL here.</small>
+                    <label for="imageFile">Image File (Optional):</label>
+                    <input type="file" id="imageFile" accept="image/*">
+                    <small>Upload an image file directly. Max size ~20MB.</small>
                 </div>
                 <button type="submit">Submit</button>
                 <p id="post-status"></p>
@@ -70,3 +70,4 @@
     <script src="script.js"></script>
 </body>
 </html>
+
