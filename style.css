@@ -180,4 +180,58 @@ small {
     color: #666;
     display: block; /* Ensures it takes its own line */
     margin-top: 5px;
+
+}
+
+/* ... โค้ด CSS ที่มีอยู่แล้ว ... */
+
+.item-card.resolved {
+    opacity: 0.7; /* ทำให้รายการที่ Resolved ดูจางลง */
+    background-color: #f0f0f0;
+    border-color: #d0d0d0;
+}
+
+.item-card .item-name {
+    margin-bottom: 5px;
+    font-size: 1.4em;
+    color: #333;
+}
+
+.item-card .item-status {
+    font-weight: bold;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 0.9em;
+}
+
+.item-card .status-active {
+    background-color: #28a745; /* Green for active */
+    color: white;
+}
+
+.item-card .status-resolved {
+    background-color: #6c757d; /* Grey for resolved */
+    color: white;
+}
+
+.action-button {
+    background-color: #ffc107; /* Yellow for action button */
+    color: #333;
+    padding: 8px 15px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.95em;
+    margin-top: 15px;
+    width: 100%;
+    transition: background-color 0.3s ease;
+}
+
+.action-button:hover {
+    background-color: #e0a800;
+}
+
+.action-button:disabled {
+    background-color: #ccc;
+    cursor: not-allowed;
 }
