@@ -55,6 +55,22 @@ async function loadItems() {
 
             itemsListDiv.innerHTML = ''; // ล้างข้อมูลเก่า
             displayItems.forEach(item => {
+                  // ... หลังจาก loop item.forEach ใน loadItems ...
+                
+                // เพิ่ม Event Listener สำหรับปุ่ม "Mark as Pending"
+                document.querySelectorAll('.mark-pending-button').forEach(button => {
+                    button.addEventListener('click', handleMarkAsPending);
+                });
+                
+                // เพิ่ม Event Listener สำหรับปุ่ม "Mark as Resolved" (อาจต้องเปลี่ยน class name เป็น mark-resolved-button)
+                document.querySelectorAll('.mark-resolved-button').forEach(button => {
+                    button.addEventListener('click', handleMarkAsResolved);
+                });
+                // เพิ่ม Event Listener ให้กับปุ่ม "Mark as Resolved" ทั้งหมด
+                document.querySelectorAll('.mark-found-button').forEach(button => {
+                    button.addEventListener('click', handleMarkAsResolved);
+                });
+
                 // ... ในฟังก์ชัน loadItems, ภายใน loop item.forEach ...
                 const actionButtons = [];
                 
@@ -106,22 +122,7 @@ async function loadItems() {
                 `;
                 itemsListDiv.appendChild(itemCard);
             });
-            // ... หลังจาก loop item.forEach ใน loadItems ...
-            
-            // เพิ่ม Event Listener สำหรับปุ่ม "Mark as Pending"
-            document.querySelectorAll('.mark-pending-button').forEach(button => {
-                button.addEventListener('click', handleMarkAsPending);
-            });
-            
-            // เพิ่ม Event Listener สำหรับปุ่ม "Mark as Resolved" (อาจต้องเปลี่ยน class name เป็น mark-resolved-button)
-            document.querySelectorAll('.mark-resolved-button').forEach(button => {
-                button.addEventListener('click', handleMarkAsResolved);
-            });
-            // เพิ่ม Event Listener ให้กับปุ่ม "Mark as Resolved" ทั้งหมด
-            document.querySelectorAll('.mark-found-button').forEach(button => {
-                button.addEventListener('click', handleMarkAsResolved);
-            });
-
+          
         } else {
             itemsListDiv.innerHTML = '<p>No items found yet.</p>';
         }
@@ -286,5 +287,6 @@ async function handlePostSubmit(event) {
 }
 
 // ... โค้ดที่มีอยู่แล้วใน script.js ...
+
 
 
