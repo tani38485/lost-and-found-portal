@@ -44,45 +44,53 @@ async function loadItems() {
         const data = await response.json();
 
         if (data && data.length > 0) {
-            // กรองและเรียงลำดับ: แสดง Active ก่อน, และเรียงจากใหม่ไปเก่า
-            const activeItems = data.filter(item => item.Status !== 'Resolved');
+            // กรองและเรียงลำดับ: Active/Pending ก่อน, และเรียงจากใหม่ไปเก่า
+            const activeAndPendingItems = data.filter(item => item.Status === 'Active' || item.Status === 'Pending');
             const resolvedItems = data.filter(item => item.Status === 'Resolved');
 
             // ใช้ DatePosted เป็น Date object เพื่อเปรียบเทียบ
-            const sortedActiveItems = activeItems.sort((a, b) => new Date(b.DatePosted) - new Date(a.DatePosted));
+            const sortedActiveAndPendingItems = activeAndPendingItems.sort((a, b) => new Date(b.DatePosted) - new Date(a.DatePosted));
             const sortedResolvedItems = resolvedItems.sort((a, b) => new Date(b.DatePosted) - new Date(a.DatePosted));
 
-            const displayItems = sortedActiveItems.concat(sortedResolvedItems); // แสดง Active ก่อน Resolved
+            const displayItems = sortedActiveAndPendingItems.concat(sortedResolvedItems); // แสดง Active/Pending ก่อน Resolved
 
             itemsListDiv.innerHTML = ''; // ล้างข้อมูลเก่า
             displayItems.forEach(item => {
                 const itemCard = document.createElement('div');
-                // เพิ่มคลาส 'resolved' ถ้าสถานะเป็น Resolved เพื่อจัดสไตล์
-                itemCard.className = `item-card ${item.Status === 'Resolved' ? 'resolved' : ''}`;
+                // เพิ่มคลาสตามสถานะเพื่อจัดสไตล์
+                itemCard.className = `item-card ${item.Status ? item.Status.toLowerCase() : 'active'}`; // ใช้ active เป็นค่า default ถ้า Status ไม่มี
 
                 const statusTagClass = item.Type === 'Lost' ? 'lost' : 'found';
 
-                // เพิ่มปุ่ม "Mark as Resolved" ถ้าสถานะยังไม่ใช่ Resolved
-                const actionButton = item.Status !== 'Resolved' ? 
-                    `<button class="action-button mark-found-button" data-item-id="${item.ID}" data-item-name="${item.ItemName}">Mark as Resolved</button>` : '';
+                // สร้างกลุ่มปุ่มสำหรับการเปลี่ยนสถานะ
+                let statusButtons = '';
+                if (item.Status !== 'Resolved') {
+                    statusButtons = `
+                        <div class="status-action-buttons">
+                            ${item.Status !== 'Active' ? `<button class="action-button mark-active-button" data-item-id="${item.ID}" data-item-name="${item.ItemName}" data-new-status="Active">Mark as Active</button>` : ''}
+                            ${item.Status !== 'Pending' ? `<button class="action-button mark-pending-button" data-item-id="${item.ID}" data-item-name="${item.ItemName}" data-new-status="Pending">Mark as Pending</button>` : ''}
+                            <button class="action-button mark-resolved-button" data-item-id="${item.ID}" data-item-name="${item.ItemName}" data-new-status="Resolved">Mark as Resolved</button>
+                        </div>
+                    `;
+                }
 
                 itemCard.innerHTML = `
                     <span class="status-tag ${statusTagClass}">${item.Type}</span>
                     <h3 class="item-name">${item.ItemName}</h3>
-                    <p><span class="label">Status:</span> <span class="item-status ${item.Status === 'Resolved' ? 'status-resolved' : 'status-active'}">${item.Status || 'Active'}</span></p>
+                    <p><span class="label">Status:</span> <span class="item-status status-${item.Status ? item.Status.toLowerCase() : 'active'}">${item.Status || 'Active'}</span></p>
                     <p><span class="label">Description:</span> ${item.Description || '-'}</p>
                     <p><span class="label">Location:</span> ${item.Location}</p>
                     <p><span class="label">Contact:</span> ${item.ContactInfo}</p>
                     <p><span class="label">Posted On:</span> ${item.DatePosted}</p>
                     ${item.ImageURL ? `<img src="${item.ImageURL}" alt="${item.ItemName}">` : ''}
-                    ${actionButton}
+                    ${statusButtons}
                 `;
                 itemsListDiv.appendChild(itemCard);
             });
 
-            // เพิ่ม Event Listener ให้กับปุ่ม "Mark as Resolved" ทั้งหมด
-            document.querySelectorAll('.mark-found-button').forEach(button => {
-                button.addEventListener('click', handleMarkAsResolved);
+            // เพิ่ม Event Listener ให้กับปุ่มเปลี่ยนสถานะทั้งหมด
+            document.querySelectorAll('.mark-active-button, .mark-pending-button, .mark-resolved-button').forEach(button => {
+                button.addEventListener('click', handleStatusChange);
             });
 
         } else {
@@ -94,19 +102,20 @@ async function loadItems() {
     }
 }
 
-// ฟังก์ชันใหม่สำหรับจัดการการคลิกปุ่ม "Mark as Resolved"
-async function handleMarkAsResolved(event) {
+// ฟังก์ชันใหม่สำหรับจัดการการคลิกปุ่มเปลี่ยนสถานะ
+async function handleStatusChange(event) {
     const itemId = event.target.dataset.itemId;
     const itemName = event.target.dataset.itemName;
+    const newStatus = event.target.dataset.newStatus;
     
     // ขอรหัสผ่านเพื่อยืนยันการเปลี่ยนสถานะ
-    const password = prompt(`Enter admin password to mark "${itemName}" (ID: ${itemId}) as Resolved:`);
+    const password = prompt(`Enter admin password to mark "${itemName}" (ID: ${itemId}) as ${newStatus}:`);
     if (!password) {
         alert('Password required to change status.');
         return;
     }
 
-    if (!confirm(`Are you sure you want to mark "${itemName}" (ID: ${itemId}) as RESOLVED? This action cannot be undone.`)) {
+    if (!confirm(`Are you sure you want to mark "${itemName}" (ID: ${itemId}) as ${newStatus}?`)) {
         return;
     }
 
@@ -117,7 +126,7 @@ async function handleMarkAsResolved(event) {
     formData.append('action', 'updateStatus');
     formData.append('password', password);
     formData.append('itemId', itemId);
-    formData.append('newStatus', 'Resolved'); // สถานะใหม่
+    formData.append('newStatus', newStatus); 
 
     try {
         const response = await fetch(GOOGLE_APPS_SCRIPT_URL, {
@@ -131,13 +140,13 @@ async function handleMarkAsResolved(event) {
             loadItems(); // โหลดข้อมูลใหม่เพื่อให้สถานะอัปเดตบนหน้าเว็บ
         } else {
             alert(`Error: ${result.message}`);
-            event.target.textContent = 'Mark as Resolved';
+            event.target.textContent = `Mark as ${newStatus}`; // คืนค่าข้อความเดิม
             event.target.disabled = false;
         }
     } catch (error) {
         console.error('Error updating status:', error);
         alert('Network error or server issue. Could not update status.');
-        event.target.textContent = 'Mark as Resolved';
+        event.target.textContent = `Mark as ${newStatus}`; // คืนค่าข้อความเดิม
         event.target.disabled = false;
     }
 }
